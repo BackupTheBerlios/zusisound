@@ -14,7 +14,7 @@ Copyright (C) 2004 Jens Haupert <haupert@babylon2k.de>
 
 http://zusisound.berlios.de
 
-Version: $Id: UNetwork.pas,v 1.2 2004/12/02 08:37:07 jens_h Exp $
+Version: $Id: UNetwork.pas,v 1.3 2004/12/06 13:47:25 jens_h Exp $
 }
 
 interface
@@ -24,7 +24,7 @@ uses
   Dialogs, StdCtrls, cCiaBuffer, WSocket, ExtCtrls, UDataCollection;
 
 
-type TDataType = (Speed, Revolutions, FAHRSTUFE); // TODO: Uebersetzung
+type IDArrayType = Array of Byte;
 
 type
     TNetwork = class(TObject)
@@ -34,7 +34,9 @@ type
         ClientNameUser: String;
         Host: String;
         Port: String;
-        Data: TDataCollection;
+
+        UserIDs: IDArrayType;
+
         procedure CliSocketBufferReceived(Sender: TObject);
         procedure CliSocketDataAvailable(Sender: TObject; Error: Word);
         procedure CliSocketSessionClosed(Sender: TObject; Error: Word);
@@ -45,9 +47,9 @@ type
         procedure ParseInput(Input: String);
         procedure SetIncomingData(Data: String);
         procedure InitSocket(comp: TComponent);
-        procedure SetUpNewData(NewData: Single; DType: TDataType);
+        //procedure SetUpNewData(NewData: Single; DType: TDataType);
       public
-        constructor Create(comp: TComponent);
+        constructor Create(comp: TComponent; ID: IDArrayType);
         destructor Destroy; override;
         procedure Connect(host, port: String); overload;
         procedure Connect(clientname, host, port: String); overload;
@@ -59,11 +61,20 @@ resourcestring
 
 implementation
 
-constructor TNetwork.Create(comp: TComponent);
+constructor TNetwork.Create(comp: TComponent; ID: IDArrayType);
+var i: Integer;
 begin
   CliSocket := TWSocket.Create(comp);
 
-  Data := TDataCollection.Create();
+  //Data := TDataCollection.Create();
+
+  SetLength(UserIDs, SizeOf(ID));
+
+  // TODO: Wieso liefert SizeOf(ID) bei Größe 3 den Wert 4?
+  for i := 0 to (SizeOf(ID)-2) do
+  begin
+    UserIDs[i] := ID[i];
+  end;
 
   // Socket initialisieren
   InitSocket(comp);
@@ -231,14 +242,20 @@ begin
 end;
 
 procedure TNetwork.GetNeededData;
+var str: String;
+    i: Integer;
 begin
   // Mit dem Befehl GET_NEEDED_DATA die benötigen IDs anfordern.
-  SendData(Chr($00) + Chr($03)+ // NEEDED_DATA
-           Chr($00) + Chr($0A)+ // Datensatz
 
-           Chr($01) +           // Geschwindigkeit = 1
-           Chr($09) +           // Motordrehzahl = 9
-           Chr($10));           // Fahrstufe = 16
+  str := Chr($00) + Chr($03)+ // NEEDED_DATA
+         Chr($00) + Chr($0A);
+
+  for I:= 0 to (SizeOf(UserIDs)-2) do
+  begin
+    str := str + Chr(UserIDs[i]);
+  end;
+
+  SendData(str);
 
   // Und den Befehl nochmal mit Datensatz 00 00 als Kennung für den letzten
   // Befehl.
@@ -366,11 +383,13 @@ begin
     // Singlewert auf Typ pruefen
     if (Ord(Buffer[1]) = $01) then
       begin
-        SetUpNewData(FSingle, Speed);
+        //TODO: Datenübergabe
+        //SetUpNewData(FSingle, Speed);
       end
     else if (Ord(Buffer[1]) = $09) then
       begin
-        SetUpNewData(FSingle, Revolutions);
+       //TODO: Datenübergabe
+       //SetUpNewData(FSingle, Revolutions);
       end
     else if (Ord(Buffer[1]) = $10) then
       begin
@@ -381,6 +400,7 @@ begin
   end;
 end;
 
+{
 procedure TNetwork.SetUpNewData(NewData: Single; DType: TDataType);
 begin
   case DType of
@@ -389,5 +409,6 @@ begin
     FAHRSTUFE:    //TODO
   end;
 end;
+}
 
 end.
