@@ -9,12 +9,11 @@ es Ihnen von Nutzen sein wird, aber OHNE IRGENDEINE GARANTIE, sogar
 ohne die implizite Garantie der MARKTREIFE oder der VERWENDBARKEIT
 FÜR EINEN BESTIMMTEN ZWECK.
 
-Autor(en):
-- Jens Haupert <haupert@babylon2k.de>
+Copyright (C) 2004 Jens Haupert <haupert@babylon2k.de>
 
 http://zusisound.berlios.de
 
-Version: $Id:
+Version: $Id: UMain.pas,v 1.2 2004/12/02 08:37:07 jens_h Exp $
 }
 
 interface
